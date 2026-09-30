@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coaching Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --ink:#1C2B39; --ink-soft:#4A5B6B; --paper:#FFFFFF; --bg:#EDF1F4; --panel:#F6F8FA;
+  --line:#CBD5DE; --teal:#0E6B6B; --teal-soft:#DCEEEE; --gold:#E0A21A; --danger:#B3261E;
+  --shadow:0 1px 2px rgba(28,43,57,.06),0 8px 24px rgba(28,43,57,.07);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --ink:#E6ECF1; --ink-soft:#A9B7C4; --paper:#18222C; --bg:#0F171F; --panel:#1E2A35;
+  --line:#34434F; --teal:#5CC2C0; --teal-soft:#1D3A3D; --gold:#EBB53F; --danger:#F2867E;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+}}
+:root[data-theme="dark"]{
+  --ink:#E6ECF1; --ink-soft:#A9B7C4; --paper:#18222C; --bg:#0F171F; --panel:#1E2A35;
+  --line:#34434F; --teal:#5CC2C0; --teal-soft:#1D3A3D; --gold:#EBB53F; --danger:#F2867E;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Figtree,"Segoe UI",system-ui,-apple-system,sans-serif;min-height:100%}
+h1,h2,h3{font-family:"Bricolage Grotesque",Figtree,system-ui,sans-serif;margin:0;line-height:1.15}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+.rail{background:var(--ink);color:#F1F4F7;padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column;gap:6px}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .rail{background:#0A1117} }
+.brand{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:22px;line-height:1.05;padding:0 8px 18px;border-bottom:3px solid var(--gold);margin-bottom:12px}
+.brand small{display:block;font-family:Figtree,sans-serif;font-weight:500;font-size:12.5px;color:#AFC0CE;margin-top:6px}
+.rail .group{font-size:12.5px;color:#AFC0CE;padding:14px 8px 4px}
+.navbtn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:9px 10px;color:#E8EEF3;cursor:pointer}
+.navbtn:hover{background:rgba(255,255,255,.08)}
+.navbtn.on{background:#F1F4F7;color:#1C2B39;font-weight:600}
+.navbtn .count{font-size:12px;background:rgba(255,255,255,.14);padding:1px 8px;border-radius:99px}
+.navbtn.on .count{background:var(--gold);color:#1C2B39}
+
+main{padding:28px clamp(14px,4vw,48px) 120px;min-width:0}
+.topline{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;justify-content:space-between;max-width:900px;margin:0 auto 16px}
+.status{font-size:13px;color:var(--ink-soft)}
+.status.err{color:var(--danger)}
+.sheet{max-width:900px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);padding:clamp(18px,4vw,40px)}
+.sheet h1{font-size:clamp(22px,3.2vw,30px);font-weight:800;padding-bottom:10px;border-bottom:3px solid var(--gold)}
+.sheet .sub{color:var(--ink-soft);font-style:italic;margin:8px 0 0;font-size:14px}
+.note{color:var(--ink-soft);font-size:14px;margin:14px 0 0}
+
+.fields{display:grid;gap:12px 18px;margin-top:20px}
+.fields.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:640px){.fields.c2{grid-template-columns:1fr}}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--ink-soft)}
+input[type=text],input[type=date],input[type=datetime-local],select,textarea{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:8px 10px;font-weight:400;color:var(--ink);min-height:38px}
+textarea{resize:vertical;line-height:1.45;overflow:hidden}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft);background:var(--paper)}
+
+.section{margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}
+.section h2{font-size:19px;font-weight:800;display:flex;gap:12px;align-items:baseline}
+.section h2 .n{flex:none;display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--paper);font-size:14px}
+.section h2 .s{font-family:Figtree,sans-serif;font-weight:500;font-size:15px;color:var(--ink-soft)}
+.prompts{margin:10px 0 0;padding-left:20px;color:var(--ink-soft);font-size:14px}
+.prompts li{margin:2px 0}
+.ta{margin-top:12px}
+.checks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chk{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:14px;cursor:pointer;background:var(--panel)}
+.chk:has(input:checked){border-color:var(--teal);background:var(--teal-soft);font-weight:600}
+.chk input{accent-color:var(--teal)}
+.other{margin-top:8px;max-width:420px}
+
+.gridwrap{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:6px}
+table.g{border-collapse:collapse;width:100%;min-width:560px}
+table.g th{background:var(--panel);text-align:left;font-size:13px;padding:8px;border-bottom:1px solid var(--line)}
+table.g td{border-top:1px solid var(--line);padding:6px;vertical-align:top}
+table.g td.lab{font-weight:700;width:52px;text-align:center;padding-top:14px}
+table.g textarea,table.g input,table.g select{background:transparent;border-color:transparent;min-height:36px}
+table.g textarea:hover,table.g input:hover,table.g select:hover{border-color:var(--line)}
+td.x{width:34px}
+.xbtn{border:0;background:none;color:var(--ink-soft);cursor:pointer;font-size:18px;padding:6px}
+.xbtn:hover{color:var(--danger)}
+
+input[type=time]{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:8px 10px;min-height:38px}
+.rates{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+.rate{border:1px solid var(--line);border-left:6px solid var(--line);border-radius:6px;padding:12px 14px;background:var(--paper)}
+.rate.r0{border-left-color:#9AA7B3}.rate.r1{border-left-color:#C8553D}.rate.r2{border-left-color:var(--gold)}.rate.r3{border-left-color:#3E9A6E}.rate.r4{border-left-color:var(--teal)}
+.rh{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start}
+.rh .num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--paper);font-weight:700;font-size:14px}
+.rh .it{font-size:14.5px;line-height:1.35}
+.rh .lk{font-size:13px;color:var(--ink-soft);margin-top:4px}
+.rh select{width:auto;min-width:170px}
+.rate textarea{margin-top:10px;min-height:36px}
+@media (max-width:640px){.rh{grid-template-columns:auto 1fr}.rh select{grid-column:1/-1;width:100%}}
+.ct td.lab{width:auto;text-align:left;font-weight:700;padding:10px}
+.gcard{border:1px solid var(--line);border-radius:8px;margin-top:14px;overflow:hidden}
+.gcard .gh{display:flex;gap:10px;align-items:center;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+.gcard .gh b{font-size:15px}
+.pill{font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;color:#fff;background:#C8553D;white-space:nowrap}
+.pill.p2{background:#B07A06}
+.gb{padding:12px 14px}
+.gb h4{margin:12px 0 4px;font-size:13.5px;color:var(--ink-soft)}
+.gb h4:first-child{margin-top:0}
+.strat{display:flex;gap:9px;align-items:flex-start;padding:4px 0;font-size:14px;cursor:pointer}
+.strat input{margin-top:3px;accent-color:var(--teal);flex:none}
+.gb details{margin-top:10px;font-size:14px}
+.gb summary{cursor:pointer;font-weight:600;color:var(--teal)}
+.gb details ul{margin:6px 0 0;padding-left:20px;color:var(--ink-soft)}
+.glows{margin-top:14px;padding:12px 14px;border-radius:8px;background:var(--teal-soft);font-size:14px}
+.glows ul{margin:6px 0 0;padding-left:20px}
+.clab{font-size:13px;font-weight:700;color:var(--ink-soft);margin-top:14px}
+.rate.wyes{border-left-color:var(--teal)}.rate.wno{border-left-color:#9AA7B3}
+.rate .it{font-size:15px;line-height:1.4}
+.tags{margin-top:6px}.tag.big3{background:#FBEFD2;color:#8A5A00}
+.seen{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.seen input{accent-color:var(--teal)}
+details.guide{margin-top:8px;font-size:13.5px}
+details.guide summary{cursor:pointer;color:var(--teal);font-weight:600}
+details.guide dl{margin:6px 0 0}details.guide dt{font-weight:700;margin-top:6px}details.guide dd{margin:2px 0 0;color:var(--ink-soft)}
+.scans{display:grid;gap:12px;margin-top:12px}
+.scan{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px}
+.scan .clab{width:100%;margin-top:0}
+.scan input{width:80px}
+.scan .pct{color:var(--teal);font-size:15px}
+.trends{margin:10px 0 6px;padding:16px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.trends h3{font-size:17px;margin-bottom:4px}
+.trow{display:grid;grid-template-columns:minmax(150px,1.3fr) 2fr 84px;gap:10px;align-items:center;font-size:13.5px;margin-top:8px}
+.tbar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}.tbar i{display:block;height:100%;background:var(--teal)}
+.aibar{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.btn{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--ink-soft)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .btn.primary{color:#0F171F} }
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:6px 10px;font-size:13px}
+.btn.danger{color:var(--danger)}
+.addrow{margin-top:10px}
+
+.bar{position:fixed;left:250px;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--line);padding:12px clamp(14px,4vw,48px) calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;justify-content:center;flex-wrap:wrap;z-index:5}
+.bar .inner{max-width:900px;width:100%;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.bar .spacer{flex:1}
+
+.saved h1{font-size:28px;font-weight:800}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.filters input{max-width:280px}
+.filters label.d{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);font-weight:600}
+.filters label.d input{width:auto}
+.bulk{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px 16px;margin:4px 0 8px;background:var(--teal-soft);border-radius:8px}
+.bulk .lead{flex:1;min-width:200px;font-size:14px}
+.bulk .lead b{font-weight:700}
+.filters select{max-width:240px}
+.rec{display:grid;grid-template-columns:1fr auto;gap:10px 16px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.rec .t{font-weight:700}
+.rec .m{font-size:13px;color:var(--ink-soft)}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px;background:var(--teal-soft);color:var(--teal);margin-right:6px}
+.rec .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.empty{padding:28px 0;color:var(--ink-soft)}
+.drivemsg{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow);padding:10px 8px 10px 16px;border-radius:8px;font-size:14px;z-index:11;max-width:min(560px,92vw);display:flex;gap:8px;align-items:center}
+.drivemsg a{color:var(--teal);font-weight:700;white-space:nowrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10;max-width:90vw}
+.toast.on{opacity:1}
+
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .rail{position:sticky;top:0;height:auto;flex-direction:row;overflow-x:auto;padding:10px 12px;gap:4px;z-index:6;top:env(safe-area-inset-top,0px)}
+  .brand,.rail .group{display:none}
+  .navbtn{white-space:nowrap;width:auto}
+  .bar{left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail" id="rail" aria-label="Forms"></nav>
+  <main id="main"></main>
+</div>
+<div class="bar" id="bar"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const ME = "__ME__";
+const NAMEKEY="coachingToolkit.name";
+function myName(){try{return localStorage.getItem(NAMEKEY)||""}catch{return ""}}
+const NOTES = "Notes / Evidence / Reflection";
+const CATS = ["Planning Support","Data Analysis","Resource Development","Modeling/Co-Teaching","Technology Integration","Assessment Support","PLC Facilitation","Literacy/Content Support","Follow-Up Conference","Other"];
+
+const SCALE=[["0","0 - Not observed"],["1","1 - Not evident"],["2","2 - Somewhat evident"],["3","3 - Evident"],["4","4 - Very evident"]];
+const SCALE_LABEL={"0":"Not observed","1":"Not evident","2":"Somewhat evident","3":"Evident","4":"Very evident"};
+const SDI=[
+{n:8,code:"CI-2",title:"The instructor implements a clear, subject-area appropriate instructional framework with a sense of urgency about how time is used and incorporates smooth transitions.",
+ look:"The lesson moves through each element of an appropriate instructional framework with a sense of urgency and smooth transitions (Opening, Work Session, Closing in ELA/social studies; Engage, Explore, Apply, Reflect in math; 5E in science).",
+ teacher:{"Preparedness and Structure":["Show a clear understanding of the instructional framework, moving through each element with purpose and urgency.","Establish and communicate clear expectations for each phase of the lesson.","Implement structures and routines aligned with the lesson framework so instruction follows a logical sequence."],
+  "Effective Transition Management":["Model and refer to established procedures for moving between activities.","Use timers or verbal cues to signal transitions and keep a sense of urgency.","Keep transitions tied to the lesson structure (e.g., whole group to small group) and help students understand the process."],
+  "Instructional Delivery and Monitoring":["Deliver instruction coherently using modeling, discourse, and activators.","Use questioning to probe understanding during the opening, work session, and closing.","Monitor independent and small-group work, giving timely feedback."],
+  "Data-Driven Grouping and Feedback":["Use data to group students for differentiated instruction during the work period.","Give individualized feedback during and after the lesson toward mastery of the learning targets.","Use formative assessments to gather data and adjust instruction."]},
+ students:["Stay focused and on task in each phase of the lesson","Ask and answer questions in the opening; engage in independent or collaborative work","Reflect during the closing with a formative check (e.g., ticket-out-the-door)","Move smoothly between activities and phases","Use resources and tools independently during the work period","Use rubrics, reflection sheets, or graphic organizers to track progress"],
+ artifacts:["Lesson plans showing the framework (Opening, Work Session, Closing) aligned to standards","Framework/agenda posted in the room","Prepared, accessible materials","Do Now activities, exit tickets, formative checks","Teacher feedback on student work","Data trackers and group activity records","Posted expectations and transition procedures"]},
+{n:9,code:"CI-2",title:"The instructor communicates clear learning targets aligned to the rigor and intent of the standard addressed.",
+ look:"Verbalized learning targets for mastery of the lesson are referred to often and aligned to the rigor and intent of the standard. Academic vocabulary is used and highlighted.",
+ teacher:{"Verbalized and Posted Learning Targets":["Clearly state and explain the learning target at the beginning of the lesson.","Repeat and refer to the learning target throughout the lesson.","Display the learning target visually in the classroom."],
+  "Use of Academic Vocabulary":["Introduce and emphasize key vocabulary terms.","Provide definitions and context for academic vocabulary.","Encourage students to use academic vocabulary in their responses."],
+  "Alignment to Standards":["Design activities and assessments that match the rigor and intent of the standard.","Explain how lesson activities connect to the standard.","Use examples and non-examples to clarify the standard's expectations."],
+  "Instructional Strategies":["Use a variety of teaching methods for different learner needs.","Use formative assessments to check for understanding.","Give timely, specific feedback to students."]},
+ students:["Explain the learning target in their own words","Refer to the learning target during discussions and activities","Use academic vocabulary in speaking and writing","Identify and define new vocabulary","Track progress toward the target with a rubric","Set personal goals related to the target"],
+ artifacts:["Lesson plans with learning targets, DOK levels, and ALDs","Posted learning targets and key vocabulary in student-friendly language","Student work samples showing mastery of the target","Assignments using academic vocabulary","Rubrics and scoring guides aligned to the target","Documentation of feedback used to guide instruction"]},
+{n:10,code:"CI-2",title:"The instructor communicates success criteria aligned to the rigor and intent of the standard addressed.",
+ look:"Verbalized success criteria so students understand how to master the lesson are referred to often and aligned to the rigor and intent of the standard.",
+ teacher:{"Verbalized and Posted Success Criteria":["State the success criteria at the beginning of the lesson.","Explain the success criteria using content-specific vocabulary and modeling.","Refer back to the success criteria throughout the lesson."],
+  "Use of Academic Vocabulary":["Introduce key vocabulary critical to understanding the lesson.","Give definitions and real-life context for vocabulary.","Unpack the success criteria by underlining verbs or explaining complex vocabulary."],
+  "Alignment to Standards/ALDs":["Design activities and assessments that match the rigor and intent of the standard.","Use exemplars and non-examples to clarify the success criteria.","Break the standard into what students need to know, understand, and do."],
+  "Assessment Strategies":["Use formative and summative assessments regularly.","Use rubrics that include DOK levels and ALDs aligned to the success criteria.","Give timely, explicit feedback aligned to the standard and success criteria."],
+  "Instructional Scaffolding":["Model how students can apply the success criteria to their work.","Scaffold students toward the success criteria, adjusting support to student needs."]},
+ students:["Explain the success criteria to others when asked","Justify their work using rubrics and exemplars","Reference the success criteria while working","Compare their work to the rubric","Use academic vocabulary from the success criteria"],
+ artifacts:["Success criteria verbalized and posted","Lesson plans with clearly defined success criteria and DOK levels","Posted exemplars with teacher feedback","Rubrics with DOK levels and ALDs","Student self-assessment tools (rubrics, checklists)","Curriculum maps linking standards, success criteria, activities, and assessments"]},
+{n:11,code:"CI-2",title:"The instructor uses high-yield instructional practices explicitly aligned to the rigor and intent of the standard addressed.",
+ look:"Similarities and differences, summarizing and note-taking, reinforcing effort, practice, non-linguistic representations, cooperative learning, prior knowledge, hypotheses, cues, questions, advance organizers, examples, explanations, representations, or models.",
+ teacher:{"Posting Learning Targets and Success Criteria":["Clearly state and display the learning target and success criteria throughout the lesson.","Refer back to them during instruction to reinforce expectations."],
+  "Engaging Students in Active Learning":["Use research-based strategies (small groups, similarities and differences, summarizing, cooperative learning).","Use real-life examples and interdisciplinary connections."],
+  "Building Upon Prior Knowledge":["Connect new concepts to students' existing knowledge and skills.","Check prior knowledge at the start of the lesson to tailor instruction."],
+  "Reinforcing Learning Goals":["Use exemplars and non-examples to clarify expectations and model high-quality work."],
+  "Using Instructional Technology":["Integrate instructional technology beyond mandated programs.","Use tools that support different learning styles and modalities."],
+  "Developing Higher-Order Thinking":["Use varied questioning techniques to promote higher-order thinking.","Engage students in generating hypotheses, analyzing, and evaluating."],
+  "Providing Scaffolding":["Offer differentiated support for varied learners.","Use graphic organizers and models to scaffold learning."],
+  "Monitoring and Providing Feedback":["Check in regularly and give in-the-moment feedback.","Use rubrics and other tools to guide student progress."]},
+ students:["Explain the success criteria and how it relates to the lesson","Engage in cooperative learning, discussion, and problem-solving","Self-assess with rubrics, exemplars, and feedback","Represent learning with graphic organizers or non-linguistic representations","Give peer feedback and use academic discourse"],
+ artifacts:["Lesson plans referencing DOK, ALDs, and evidence-based practices","Posted learning targets, success criteria, and DOK charts","Anchor charts, graphic organizers, exemplar work","Student reflections and self-assessments","Evidence of technology integration","Posted exemplars and non-examples"]},
+{n:12,code:"CI-3",title:"The instructor uses formative assessments (oral or written) to monitor learning and to inform instruction.",
+ look:"Effective Q&A, quizzes, ticket-out-the-door slips, think-pair-share, journaling, clickers, interactive assessment activities that drive instruction, or distributive use of success criteria.",
+ teacher:{"Utilizing Formative Assessments":["Use Q&A, quizzes, think-pair-share, exit tickets, and journaling to monitor understanding.","Use interactive tools (clickers, digital platforms) to adjust instruction in real time.","Use quick checks such as thumbs up/down or hand signals."],
+  "Questioning and Feedback":["Question intentionally to check understanding and adjust instruction.","Give timely, specific, targeted feedback toward mastery of the learning target.","Use a questioning strategy that lets every student be heard."],
+  "Planning and Preparation":["Display and verbalize the learning target and success criteria.","Plan a structured student response system so all students show understanding.","Build a questioning matrix, ALDs, and standards into lesson plans."],
+  "Adjusting Instruction Based on Data":["Use formative data to decide next steps for individual students.","Analyze trends in student work to differentiate instruction.","Use frameworks that allow ongoing assessment and responsive teaching."]},
+ students:["Respond orally or in writing during formative checks","Pose questions and participate in think-pair-share","Use graphic organizers, self-reflections, or test corrections","Set learning goals; use interactive notebooks","Self-assess with exit tickets or reflection journals"],
+ artifacts:["Lesson plans with formative assessment planning","Quizzes, exit tickets, graphic organizers","Item analyses and data review protocols","Interactive digital media (Nearpod, Quizizz, Seesaw)","Documentation of feedback used to adjust instruction","Pre- and post-assessment data"]},
+{n:13,code:"SLE-1",title:"The instructor establishes and implements rules, schedules, practices, and procedures within the classroom to maximize student learning.",
+ look:"Classroom rules and procedures are evident, resulting in a positive learning environment. Transitions, routines, and procedures are executed in an orderly and efficient manner, promoting positive relationships and classroom culture.",
+ teacher:{"Clear Expectations and Consistency":["Consistently communicate and reinforce rules, routines, and expectations that are visible to all students.","Carry out procedures consistently and model desired behaviors and transitions.","Communicate expectations verbally and non-verbally and reinforce with positive reminders."],
+  "Efficient Classroom Management":["Keep transitions efficient and tied to established routines.","Keep materials prepared and accessible.","Circulate to monitor, addressing off-task behavior promptly."],
+  "Engagement and Proximity Control":["Use verbal and non-verbal cues to maintain focus and redirect.","Use physical proximity to keep students on task.","Give clear, concise instructions with scaffolds."],
+  "Positive Reinforcement and Behavior Management":["Use positive reinforcement with clear, consistent consequences.","Use a behavior management plan with immediate intervention and tracking tools (e.g., behavior charts)."],
+  "Maximizing Instructional Time":["Plan lessons to minimize downtime and follow the daily schedule.","Use formative checks and questioning to adjust instruction.","Maintain a safe, inviting environment where students feel valued."]},
+ students:["Follow rules and procedures without constant reminders","Transition with minimal prompting","Come prepared and use resources responsibly","Follow routines independently (turning in work, getting materials)","Respond to teacher cues and restate directions when needed"],
+ artifacts:["Rules, schedule, and procedures posted in student-friendly language","Room arrangement that supports procedures","Behavior tracking (behavior charts, Class Dojo)","Transition signals","Lesson plans with procedures","Parent communication records"]},
+{n:14,code:"CI-2",title:"The students are actively engaged.",
+ look:"75% or more of students are engaged in independent or collaborative learning from start to finish (reading critically, writing to learn, discussing, debating, questioning, presenting, investigating, problem solving).",
+ teacher:{"Facilitating Engagement":["Use differentiated, guiding questions that promote critical thinking.","Design differentiated tasks that challenge students.","Use varied resources (technology, manipulatives, visuals, movement).","Build a risk-free environment where students share ideas and take risks."],
+  "Active Monitoring and Feedback":["Observe and interact with students, giving immediate, specific feedback.","Use intentional monitoring so every student stays engaged.","Surface common misconceptions and use them to guide discussion.","Give targeted feedback during and after activities."],
+  "Instructional Strategies and Modeling":["Act as a facilitator, prompting students with questions to explore.","Model thinking through think-alouds and gradual release.","Use formative assessments daily to adjust instruction.","Keep referring to the learning target and success criteria."]},
+ students:["Read critically, write, discuss, debate, and problem-solve","Collaborate to complete tasks","Use academic vocabulary in discussion","Self-monitor with checklists or rubrics","Peer teach and present their learning","Take risks and try new approaches"],
+ artifacts:["Lesson plans with differentiated activities","Manipulatives, graphic organizers, digital tools","Data-driven grouping plans","Exit tickets, quizzes, reflective journals","Engagement tools (e.g., popsicle sticks), data notebooks","Peer evaluation forms and discussion notes"]},
+{n:15,code:"CI-2",title:"The instructor implements strategies to meet specific learning needs of students during the lesson.",
+ look:"Differentiated, personalized learning, tiered assignments or scaffolding strategies for individual students, tiered activities, varied tasks/products, or varied reading level materials are evident.",
+ teacher:{"Differentiation and Personalization":["Vary tasks, products, or reading materials by readiness, interest, and learning style.","Form flexible small groups based on data.","Differentiate content, process, product, or environment.","Plan tiered activities, scaffolds, and tiered assignments."],
+  "Small Group Instruction and Co-Teaching":["Work with small groups; co-teachers actively lead groups.","Form groups from assessment data and use questioning to guide progress.","Give standards-based feedback during group work.","Use co-teaching models such as parallel, station, or team teaching."],
+  "Active Monitoring and Feedback":["Monitor progress and adjust support immediately.","Give individual, not just group, feedback.","Make sure students understand the success criteria; model thinking as needed."],
+  "Use of Data and Resources":["Use formative assessments, data trackers, and diagnostics to adjust grouping or tasks.","Keep manipulatives, graphic organizers, and leveled readers accessible.","Provide anchor activities or choice boards for early finishers."]},
+ students:["Engage in differentiated activities at their level","Explain the purpose of their group","Work at their own pace on tiered tasks","Self-assess with rubrics and success criteria","Use manipulatives, technology, or leveled texts"],
+ artifacts:["Lesson plans with flexible grouping and tiered activities","Leveled materials and scaffolded tasks","Diagnostic and progress-monitoring data","Student trackers and conferencing notes","Room set up for flexible groups (task cards, anchor charts)","Evidence of co-teaching models"]},
+{n:16,code:"CI-2",title:"The instructor provides personalized, standards-based instructional feedback to support proficient or distinguished learning.",
+ look:"The teacher checks for understanding throughout the lesson and provides interactive dialogue and standards-based feedback that is specific, clear, and growth-oriented.",
+ teacher:{"Setting Clear Expectations":["Communicate learning targets and success criteria for proficient or distinguished work.","Reference the standard, target, and success criteria in every phase."],
+  "Active Feedback and Dialogue":["Circulate and give timely feedback using the language of the standard.","Give individual feedback on how to refine work toward proficiency."],
+  "Formative Assessment and Differentiation":["Check for understanding and adjust instruction and feedback.","Use whole-group, small-group, and individual instruction based on data."],
+  "Purposeful Questioning and Scaffolding":["Plan higher-order questions and adjust based on responses.","Model think-alouds for complex tasks."],
+  "Peer Feedback and Self-Assessment":["Facilitate standards-based peer feedback.","Guide students to self-assess with rubrics and exemplars."],
+  "Feedback Design and Planning":["Pre-plan feedback aligned to proficient and distinguished levels.","Break learning into manageable steps with rubrics that show progression."]},
+ students:["Use the target and success criteria to guide discussion","Revise work based on teacher or peer feedback","Use the language of the standard to explain how to improve","Track progress toward goals","Give and receive standards-based peer feedback"],
+ artifacts:["Lesson plans with planned questions for feedback","Work samples showing revisions from feedback","Peer feedback forms, sticky notes, Google Forms","Exit tickets and observation notes","Data tracking sheets","Posted targets, success criteria, and rubrics"]},
+{n:17,code:"SLE-3",title:"Students function in a supportive learning environment created by the teacher, their peers, and other pro-social resources.",
+ look:"During the lesson, supportive dialogue and behavior occur among the teacher and students to facilitate high levels of student learning and classroom morale.",
+ teacher:{"Facilitating Dialogue and Engagement":["Set up procedures so every student engages in academic discourse.","Use turn-and-talk, think-pair-share, and group discussion aligned to standards.","Pose intentional questions that push critical thinking."],
+  "Supportive Learning Environment":["Give standards-driven feedback that encourages growth.","Model and facilitate discussion so students feel safe taking academic risks.","Use differentiated strategies to guide engagement.","Use feedback and questioning to build confidence and morale."],
+  "Encouraging Academic Dialogue":["Create opportunities for students to verbalize their thinking and self-monitor against the standard."]},
+ students:["Use academic language in structured dialogue","Contribute, ask questions, and explain their thinking","Collaborate respectfully and support peers","Reflect on progress and adjust based on feedback"],
+ artifacts:["Visible rituals and routines for academic discussion","Posted norms for respectful dialogue","Lesson plans with pre-planned discussion questions","Documentation of individual feedback"]}
+];
+const COTEACH=[
+ ["a","Team Teaching","Both teachers are in the room and take turns teaching the whole class."],
+ ["b","One Teach, One Assist","One teacher teaches the full group while the other roams and helps individual students."],
+ ["c","Alternate Teaching","One teacher instructs most of the class while the other teaches an alternate or modified version to a small group."],
+ ["d","Parallel Teaching","The class is split into two groups and each teacher teaches the same content at the same time."],
+ ["e","Station Teaching","Students rotate through three or more stations; teachers teach the same material in different ways."],
+ ["f","One Teach, One Observe","One teacher instructs while the other observes student learning and collects data."]];
+function growthList(v){const r=v.ratings||{};return SDI.filter(i=>r[i.n]==="1"||r[i.n]==="2").sort((a,b)=>+r[a.n]-+r[b.n]||a.n-b.n)}
+function strengthList(v){const r=v.ratings||{};return SDI.filter(i=>r[i.n]==="3"||r[i.n]==="4")}
+
+
+const WALK=[
+ {group:"1. Lesson Flow & Clarity",items:[
+  {k:"fw",text:"The lesson moves through a clear framework (Opening, Work Session, Closing) with smooth transitions and good use of time.",sdi:"Instructional Framework & Pacing",sn:8,
+   g:["Signal transitions with timers or cues; set clear expectations for each phase; move from whole group to small group with purpose.","Move between activities smoothly; stay on task in each phase; reflect during the closing.","Agenda or framework posted; Do Now; exit tickets; materials ready and accessible."]},
+  {k:"lt",text:"A learning target is posted, said out loud, and referred to. Academic vocabulary is highlighted.",sdi:"Learning Targets",sn:9,big3:"Teacher Clarity",
+   g:["State and post the target in student-friendly words; return to it during the lesson; introduce and define key vocabulary.","Explain the target in their own words; use academic vocabulary when speaking and writing.","Posted targets and word wall; lesson plans referencing DOK and ALDs."]},
+  {k:"sc",text:"Success criteria tell students how they will know they have learned it, and they are referred to during the lesson.",sdi:"Success Criteria",sn:10,big3:"Teacher Clarity",
+   g:["Unpack criteria (underline verbs); show exemplars and non-examples; model how to meet the criteria.","Use rubrics or checklists to check their own work; explain what success looks like.","Posted criteria, rubrics, exemplars, DOK chart, self-assessment checklists."]}]},
+ {group:"2. Teaching & Checking for Understanding",items:[
+  {k:"hy",text:"Research-based strategies are used (modeling, note-taking, graphic organizers, cooperative learning, examples, prior knowledge).",sdi:"High-Yield Instructional Practices",sn:11,big3:"Teacher Clarity",
+   g:["Model with think-alouds; connect to prior knowledge; use graphic organizers, summarizing, cooperative learning, technology.","Work in groups, compare and contrast, summarize, represent ideas visually.","Anchor charts, graphic organizers, student products, tech tools in use."]},
+  {k:"fa",text:"The teacher checks for understanding (questioning, exit ticket, think-pair-share, whiteboards, quick polls) and uses what they learn.",sdi:"Formative Assessment",sn:12,big3:"Classroom Discussion",
+   g:["Ask planned questions; use quick checks (thumbs, whiteboards, polls, exit tickets); adjust instruction based on responses.","Respond orally or in writing; set goals; use notebooks or trackers.","Exit tickets, quizzes, Nearpod/Quizizz data, data trackers."]},
+  {k:"fb",text:"Feedback is specific to the standard and helps students know their next step.",sdi:"Standards-Based Feedback",sn:16,big3:"Classroom Discussion",
+   g:["Circulate and give specific, standards-language feedback; facilitate peer feedback; plan feedback in advance.","Revise work based on feedback; give peers feedback using the criteria.","Sticky-note or Google Form feedback, revised drafts, rubric notes."]}]},
+ {group:"3. Students & Support",items:[
+  {k:"en",text:"Most students (about 75% or more) are actively reading, writing, discussing, solving, or creating.",sdi:"Student Engagement",sn:14,
+   g:["Facilitate rather than lecture; circulate and monitor; offer choice and movement; create a safe space for risk-taking.","Read with pen in hand, write, discuss, debate, investigate, present.","Student work, reflections, peer feedback forms, engagement tools."]},
+  {k:"ln",text:"Support is in place for different learners (scaffolds, tiered tasks, small groups, leveled materials, choice).",sdi:"Meeting Specific Learning Needs",sn:15,
+   g:["Form flexible groups from data; tier tasks; scaffold; offer choice boards or anchor activities.","Know why they are in a group; work at their level; use supports independently.","Leveled texts, tiered assignments, grouping records, conferencing notes."]}]},
+ {group:"4. Classroom Culture",items:[
+  {k:"rt",text:"Routines and procedures run smoothly, and students know what to do without constant reminders.",sdi:"Rules, Routines & Procedures",sn:13,
+   g:["Model and reinforce routines; use proximity and positive reinforcement; keep materials organized.","Follow routines with few reminders; respond to cues; manage their own materials.","Posted rules and procedures, schedule, transition signals, behavior tools."]},
+  {k:"se",text:"Talk between teacher and students, and among students, is respectful and supports learning and risk-taking.",sdi:"Supportive Learning Environment",sn:17,big3:"Classroom Discussion",
+   g:["Use turn-and-talks and discussion norms; ask open questions; build confidence through encouragement.","Speak respectfully, build on each other's ideas, ask questions, take academic risks.","Discussion norms posted, sentence stems, evidence of rituals and routines."]}]}
+];
+const WALK_ITEMS=WALK.flatMap(g=>g.items);
+function pct(a,b){a=+a;b=+b;return b>0&&a>=0?Math.round(100*a/b):null}
+
+const SHORTN={8:"Instructional framework & transitions",9:"Learning targets",10:"Success criteria",11:"High-yield practices",12:"Formative assessment",13:"Rules & procedures",14:"Active engagement",15:"Meeting learning needs",16:"Standards-based feedback",17:"Supportive environment"}; SDI.forEach(i=>i.short=SHORTN[i.n]);
+
+const FORMS = [
+{ id:"pre", short:"Preconference", title:"Instructional Coaching Preconference Form",
+  subtitle:"Inspired by Jim Knight's Impact Cycle and the coaching model structure", dateKey:"date",
+  blocks:[
+    {type:"fields",cols:2,fields:[
+      {key:"teacher",label:"Teacher",list:true},{key:"coach",label:"Coach",def:ME},
+      {key:"date",label:"Date",input:"date"},{key:"classContent",label:"Class/Grade/Content"},
+      {key:"obsDate",label:"Observation Date",input:"date"},{key:"length",label:"Length/Time"}]},
+    {type:"section",n:1,title:"Identify",sub:"Data Analysis & Current Reality",prompts:[
+      "What are you noticing about student learning, engagement, or behavior?",
+      "What evidence or data can help us understand the current reality?",
+      "What is working well already that we want to preserve?",
+      "What do you think is the most important area to focus on right now?"],
+      blocks:[{type:"textarea",key:"s1"}]},
+    {type:"section",n:2,title:"Goal",sub:"Define the Desired Impact",prompts:[
+      "What would you like students to be doing or learning differently?",
+      "What would success look like in observable terms?",
+      "How will we know whether we are making progress?",
+      "What is a small, measurable goal we can work toward?"],
+      blocks:[{type:"textarea",key:"s2"}]},
+    {type:"section",n:3,title:"Learn",sub:"Strategy & Professional Learning",prompts:[
+      "What strategy or practice might help us reach the goal?",
+      "What do we already know about this strategy?",
+      "What questions or resources would help us learn more?",
+      "What teacher strengths can we build on?"],
+      blocks:[{type:"textarea",key:"s3"}]},
+    {type:"section",n:4,title:"Co-Plan",sub:"Design the Lesson/Experience",prompts:[
+      "What will the teacher and students do?",
+      "What will we look for during the observation?",
+      "What evidence should the coach collect?",
+      "What supports, materials, or adjustments are needed?"],
+      blocks:[{type:"textarea",key:"s4"}]},
+    {type:"section",n:5,title:"Model / Co-Teach",sub:"Decide the Coach's Role",prompts:[
+      "How will the coaching role support teacher ownership and the agreed-upon goal?"],
+      blocks:[
+        {type:"checks",key:"role",label:"Coach's role",options:["Teacher leads; coach observes","Coach models; teacher practices","Coach and teacher co-teach","Coach supports during implementation","Other"],other:"roleOther"},
+        {type:"textarea",key:"s5"}]},
+    {type:"section",n:6,title:"Observe",sub:"Evidence Collection",
+      blocks:[
+        {type:"fields",cols:1,fields:[
+          {key:"obsFocus",label:"Observation focus"},
+          {key:"obsEvidence",label:"Evidence/data to collect"},
+          {key:"obsShare",label:"How will evidence be recorded/shared?"}]},
+        {type:"textarea",key:"s6"}]},
+    {type:"section",n:7,title:"Feedback & Reflection",sub:"Analyze the Evidence",prompts:[
+      "What did you notice about student learning or the strategy?",
+      "What seemed to work? What evidence supports that?",
+      "What surprised you?",
+      "What would you like to celebrate, examine, or adjust?",
+      "What questions do you have after seeing the evidence?"],
+      blocks:[{type:"textarea",key:"s7"}]},
+    {type:"section",n:8,title:"Next Steps",sub:"Adjust, Continue, or Try Again",
+      blocks:[
+        {type:"checks",key:"nextStatus",label:"Decision",options:["Continue the strategy","Adjust the strategy","Try a new strategy","Celebrate/reach goal"]},
+        {type:"fields",cols:1,fields:[
+          {key:"nextStep",label:"Next small step"},
+          {key:"nextEvidence",label:"Evidence we will look for next"},
+          {key:"nextConvo",label:"Next coaching conversation/date"}]},
+        {type:"textarea",key:"s8"}]},
+    {type:"section",title:"Preconference Summary",
+      blocks:[{type:"fields",cols:1,fields:[
+        {key:"sumGoal",label:"Our shared goal",input:"textarea"},
+        {key:"sumEvidence",label:"Evidence we will examine",input:"textarea"},
+        {key:"sumSupport",label:"Coach support",input:"textarea"},
+        {key:"sumCommit",label:"Teacher commitment",input:"textarea"}]}]},
+    {type:"note",text:"Coaching stance: partnership, teacher voice, evidence, student impact, continuous improvement."}
+  ]},
+{ id:"walk", short:"Eagle Eyes Walk", title:"Eagle Eyes Learning Walk",
+  subtitle:"A friendly, non-evaluative classroom snapshot aligned to the GaDOE SDI Classroom Observation Form", dateKey:"date",
+  blocks:[
+    {type:"note",text:"A snapshot, not a score. A 10-15 minute visit to notice what is working and start a coaching conversation. No ratings and not a TKES evaluation. Write only what you see and hear, and share a Glow and a Wonder with the teacher within 24-48 hours."},
+    {type:"fields",cols:2,fields:[
+      {key:"teacher",label:"Teacher",list:true},{key:"course",label:"Course / Subject"},
+      {key:"date",label:"Date",input:"date"},{key:"period",label:"Period"},
+      {key:"timeIn",label:"Time In",input:"time"},{key:"timeOut",label:"Time Out",input:"time"},
+      {key:"visitor",label:"Visitor",def:ME}]},
+    {type:"section",title:"Lesson phase seen",blocks:[
+      {type:"checks",key:"phaseGen",label:"ELA / Social Studies / General",showLabel:true,options:["Opening","Work Session","Closing"]},
+      {type:"checks",key:"phaseMath",label:"Math",showLabel:true,options:["Engage","Explore","Apply","Reflect"]},
+      {type:"checks",key:"phaseSci",label:"Science",showLabel:true,options:["Engage","Explore","Explain","Elaborate","Evaluate"]}]},
+    {type:"walkLooks"},
+    {type:"section",title:"Engagement Snapshot",sub:"Count heads, not names",blocks:[
+      {type:"scan"},
+      {type:"checks",key:"engType",label:"Engagement looked like",showLabel:true,options:["Reading/annotating","Writing","Discussing","Problem solving","Creating/presenting","Listening/notes"]}]},
+    {type:"section",title:"Student Voice",sub:"Ask 1-2 students quietly, without interrupting",blocks:[
+      {type:"fields",cols:1,fields:[
+        {key:"sv1",label:"What are you learning today?",input:"textarea"},
+        {key:"sv2",label:"How will you know when you have learned it?",input:"textarea"},
+        {key:"sv3",label:"What do you do if you get stuck?",input:"textarea"}]}]},
+    {type:"section",title:"Co-Teaching Model",sub:"Only if a co-teacher is present. Check the model seen (no rating)",blocks:[
+      {type:"checks",key:"coModel",label:"Co-teaching model",options:COTEACH.map(c=>c[1])}]},
+    {type:"section",title:"Feedback for the Teacher",sub:"Share within 24-48 hours",blocks:[
+      {type:"fields",cols:1,fields:[
+        {key:"glow",label:"Glow: a specific strength I noticed and why it matters for students",input:"textarea"},
+        {key:"wonder",label:"Wonder: a curious question, not a judgment (\"I wonder how... / What if...\")",input:"textarea"},
+        {key:"next",label:"Next step (optional): one small, doable idea, chosen together with the teacher",input:"textarea"}]},
+      {type:"walkTools"}]},
+    {type:"section",title:"Teacher Reflection",sub:"Optional, for the teacher to complete",blocks:[
+      {type:"fields",cols:1,fields:[
+        {key:"trWell",label:"What went well in this lesson?",input:"textarea"},
+        {key:"trSupport",label:"What support or resource would help you most right now?",input:"textarea"}]},
+      {type:"checks",key:"followUp",label:"Would you like a follow-up?",showLabel:true,options:["Coaching conversation","Co-plan a lesson","Model lesson","Peer visit","Not right now"]}]}
+  ]},
+{ id:"sdi", short:"SDI Observation", title:"SDI Classroom Observation Form", landscape:true, dateKey:"date",
+  blocks:[
+    {type:"fields",cols:2,fields:[
+      {key:"teacher",label:"Teacher",list:true},{key:"observer",label:"Observer",def:ME},
+      {key:"school",label:"School Name",def:"T.W. Josey High School"},{key:"gradeSubject",label:"Grade-level & Subject"},
+      {key:"date",label:"Date",input:"date"},{key:"timeIn",label:"Time In",input:"time"},{key:"timeOut",label:"Time Out",input:"time"}]},
+    {type:"note",text:"Rating scale: 0 Not observed (seldom scored), 1 Not evident, 2 Somewhat evident (emerging), 3 Evident (proficient), 4 Very evident (exemplary)."},
+    {type:"ratings"},
+    {type:"section",title:"Co-Teaching Model",sub:"Rate only if a co-teacher is present",blocks:[{type:"coteach"}]},
+    {type:"section",title:"Observer Notes",blocks:[{type:"textarea",key:"notes",label:""}]},
+    {type:"section",title:"Growth Areas & Coaching Plan",sub:"Strategies from the SDI Coaching Tool",blocks:[{type:"growth"}]},
+    {type:"section",title:"Coaching Summary",blocks:[{type:"summary"}]}
+  ]},
+{ id:"doc", short:"Coaching Documentation", title:"Instructional Specialist Teacher Coaching Documentation",
+  blocks:[
+    {type:"fields",cols:2,fields:[
+      {key:"specialist",label:"Instructional Specialist",def:ME},{key:"teacher",label:"Teacher",list:true},
+      {key:"grade",label:"Grade"},{key:"subject",label:"Subject"}]},
+    {type:"fields",cols:1,fields:[
+      {key:"growth",label:"Teacher-Identified Area of Growth",input:"textarea"},
+      {key:"impact",label:"Student Impact Goal",input:"textarea"},
+      {key:"focus",label:"Coaching Focus/Strategy(s)",input:"textarea"}]},
+    {type:"section",title:"Weekly coaching log",blocks:[
+      {type:"grid",key:"weeks",rows:6,rowLabels:["1","2","3","4","5","6"],labelHead:"Week",columns:[
+        {key:"dates",label:"Dates"},{key:"activity",label:"Coaching Activity",input:"textarea"},
+        {key:"strategy",label:"Focus Strategy",input:"textarea"},{key:"evidence",label:"Evidence of Progress",input:"textarea"}]}]},
+    {type:"section",title:"Reflection",blocks:[
+      {type:"grid",key:"data",rows:1,columns:[
+        {key:"begin",label:"Beginning Data",input:"textarea"},{key:"end",label:"End-of-Cycle Data",input:"textarea"},{key:"growth",label:"Growth",input:"textarea"}]}]},
+    {type:"section",title:"Teacher Reflection",blocks:[
+      {type:"fields",cols:1,fields:[
+        {key:"tr1",label:"What strategies had the greatest impact on student learning?",input:"textarea"},
+        {key:"tr2",label:"What professional growth occurred during this cycle?",input:"textarea"},
+        {key:"tr3",label:"What are the next instructional goals?",input:"textarea"}]}]},
+    {type:"section",title:"IS Reflection",blocks:[{type:"textarea",key:"isr",label:""}]},
+    {type:"section",title:"Recommendation",blocks:[
+      {type:"checks",key:"recommend",label:"Recommendation",options:[
+        "Coaching Cycle Complete, continue using strategies",
+        "Continue Coaching Support after skipping 1 coaching cycle",
+        "Targeted Follow-Up Needed outside of a coaching cycle",
+        "Additional Professional Learning Recommended"]}]},
+    {type:"section",title:"Signatures",blocks:[
+      {type:"fields",cols:2,fields:[
+        {key:"sigTeacher",label:"Teacher"},{key:"sigTeacherDate",label:"Date",input:"date"},
+        {key:"sigIS",label:"Instructional Specialist",def:ME},{key:"sigISDate",label:"Date",input:"date"}]},
+      {type:"note",text:"Type names here, or leave blank and sign the printed PDF by hand."}]}
+  ]},
+{ id:"log", short:"Support Log", title:"Instructional Specialist Teacher Support Documentation Log", landscape:true,
+  blocks:[
+    {type:"note",text:"This log documents coaching and instructional support provided to teachers outside of a formal coaching cycle."},
+    {type:"fields",cols:2,fields:[
+      {key:"specialist",label:"Instructional Specialist",def:ME},{key:"period",label:"Log period (e.g., October 2026)"}]},
+    {type:"grid",key:"entries",rows:5,dynamic:true,columns:[
+      {key:"date",label:"Date",input:"date",w:140},{key:"teacher",label:"Teacher Name",list:true},
+      {key:"gradeContent",label:"Grade/Content"},{key:"category",label:"Support Category",input:"select",options:CATS},
+      {key:"support",label:"Support Given",input:"textarea"},{key:"next",label:"Next Steps for Teacher",input:"textarea"}]}
+  ]},
+{ id:"co", short:"Co-Teaching Plan", title:"Co-Teaching Planning Form", dateKey:"when",
+  attribution:"Adapted from The Impact Cycle by Jim Knight (Corwin, 2018).",
+  blocks:[
+    {type:"fields",cols:2,fields:[
+      {key:"teacher",label:"Teacher",list:true},{key:"coach",label:"Coach",def:ME},
+      {key:"when",label:"Date and Time",input:"datetime-local"},{key:"room",label:"Room"}]},
+    {type:"fields",cols:1,fields:[{key:"topic",label:"Topic"},{key:"goal",label:"Goal",input:"textarea"}]},
+    {type:"grid",key:"plan",rows:6,columns:[
+      {key:"time",label:"Time"},{key:"you",label:"You",input:"textarea"},{key:"me",label:"Me",input:"textarea"}]}
+  ]}
+];
+const FORM = Object.fromEntries(FORMS.map(f=>[f.id,f]));
+
+/* ---------- helpers ---------- */
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtDate(v){
+  if(!v) return "";
+  const m=/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(v); if(!m) return v;
+  let s=`${MONTHS[+m[2]-1]} ${+m[3]}, ${m[1]}`;
+  if(m[4]){let h=+m[4];const ap=h>=12?"PM":"AM";h=h%12||12;s+=` ${h}:${m[5]} ${ap}`}
+  return s;
+}
+function fmtStamp(ms){const d=new Date(ms);return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("on");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("on"),2600)}
+const uid=()=>"r"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+function eachField(blocks,fn){for(const b of blocks){
+  if(b.type==="fields") b.fields.forEach(fn);
+  if(b.type==="section") eachField(b.blocks,fn);
+}}
+function eachGrid(blocks,fn){for(const b of blocks){ if(b.type==="grid") fn(b); if(b.type==="section") eachGrid(b.blocks,fn); }}
+function defaults(form){
+  const v={};
+  eachField(form.blocks,f=>{ if(f.def) v[f.key]=f.def===ME?myName():f.def; });
+  eachGrid(form.blocks,g=>{ v[g.key]=Array.from({length:g.rows},()=>({})); });
+  return v;
+}
+function recTitle(r){
+  const f=FORM[r.form], v=r.values||{};
+  if(r.form==="log") return v.period ? `Support Log: ${v.period}` : "Support Log";
+  return `${f.short}: ${v.teacher||"No teacher yet"}`;
+}
+function recISO(r){const f=FORM[r.form];const d=f.dateKey&&r.values?.[f.dateKey];return d?d.slice(0,10):new Date(r.updatedAt).toISOString().slice(0,10)}
+function recDate(r){const f=FORM[r.form];const d=f.dateKey&&r.values?.[f.dateKey];return d?fmtDate(d):"";}
+
+/* ---------- storage ---------- */
+let records=[], storeKind="loading";
+const cap = n => (window.claude && typeof window.claude.use==="function") ? window.claude.use(n).catch(()=>null) : Promise.resolve(null);
+const downloadsP = cap("downloads");
+const sampleP = cap("sample");
+const mcpP = cap("mcp");
+const LSKEY="coachingToolkit.records";
+function lsRead(){try{return JSON.parse(localStorage.getItem(LSKEY)||"{}")}catch{return {}}}
+function lsWrite(o){try{localStorage.setItem(LSKEY,JSON.stringify(o));return true}catch{return false}}
+const LSSET="coachingToolkit.settings";
+const local = {
+  async getSettings(){try{return JSON.parse(localStorage.getItem(LSSET)||"{}")}catch{return {}}},
+  async setSettings(o){try{localStorage.setItem(LSSET,JSON.stringify(o))}catch{}},
+  async save(r){const o=lsRead();o[r.id]=r;if(!lsWrite(o))throw new Error("storage");emitLocal()},
+  async remove(id){const o=lsRead();delete o[id];lsWrite(o);emitLocal()}
+};
+function emitLocal(){records=Object.values(lsRead()).sort((a,b)=>b.updatedAt-a.updatedAt);onRecords()}
+
+const storeP=(async()=>{
+  try{
+    const [db,user]=await Promise.all([cap("db"),cap("user")]);
+    const id=user?await user.id():null;
+    if(db&&id){
+      const col=db.doc("data/users/"+id+"/toolkit").collection("records");
+      col.orderBy("updatedAt","desc").onSnapshot(s=>{records=s.docs.map(d=>d.data());onRecords()},
+        e=>{setStatus("Couldn't load saved forms. Reload the page to try again.",true)});
+      storeKind="cloud";
+      const sref=db.doc("data/users/"+id+"/toolkit");
+      return {async save(r){await col.doc(r.id).set(r)},async remove(i){await col.doc(i).delete()},
+        async getSettings(){const d=await sref.get();return d.exists?{...d.data()}:{}},
+        async setSettings(o){await sref.set(o)}};
+    }
+  }catch(e){}
+  storeKind="local"; emitLocal(); return local;
+})();
+
+/* ---------- state ---------- */
+let view="form", cur=null, dirty=false, saveTimer=null, saving=Promise.resolve();
+let filter={form:"",q:"",from:"",to:""}, confirmDel=null;
+
+function newRecord(formId){cur={id:uid(),form:formId,values:defaults(FORM[formId]),createdAt:Date.now(),updatedAt:Date.now()};dirty=false}
+function setStatus(msg,err){const s=$("#status");if(s){s.textContent=msg;s.classList.toggle("err",!!err)}}
+
+function scheduleSave(){dirty=true;setStatus("Editing…");clearTimeout(saveTimer);saveTimer=setTimeout(flush,900)}
+function flush(){
+  clearTimeout(saveTimer); if(!dirty||!cur) return saving;
+  dirty=false; const snap=JSON.parse(JSON.stringify({...cur,updatedAt:Date.now()}));
+  saving=saving.then(async()=>{
+    try{const s=await storeP;await s.save(snap);setStatus(storeKind==="cloud"?"All changes saved":"Saved on this device")}
+    catch(e){dirty=true;setStatus(e&&e.code==="quota_exceeded"?"Storage is full. Delete old forms to keep saving.":"Couldn't save. Your changes are kept on screen; keep typing to retry.",true)}
+  });
+  return saving;
+}
+
+/* ---------- rendering ---------- */
+function renderRail(){
+  const counts={};records.forEach(r=>counts[r.form]=(counts[r.form]||0)+1);
+  $("#rail").innerHTML=`<div class="brand">Coaching Toolkit<small>Instructional coaching forms</small></div>
+  <div class="group">Start a form</div>
+  ${FORMS.map(f=>`<button class="navbtn ${view==="form"&&cur?.form===f.id?"on":""}" data-nav="${f.id}">${esc(f.short)}</button>`).join("")}
+  <div class="group">Records</div>
+  <button class="navbtn ${view==="saved"?"on":""}" data-nav="saved">Saved forms <span class="count">${records.length}</span></button>`;
+}
+function teacherList(){return [...new Set(records.flatMap(r=>{const v=r.values||{};return [v.teacher,...(v.entries||[]).map(e=>e.teacher)]}).filter(Boolean))].sort()}
+
+function inputHTML(f,val,attrs){
+  const t=f.input||"text";
+  if(t==="textarea") return `<textarea rows="${f.rows||2}" ${attrs}>${esc(val)}</textarea>`;
+  if(t==="select") return `<select ${attrs}><option value=""></option>${f.options.map(o=>`<option ${o===val?"selected":""}>${esc(o)}</option>`).join("")}</select>`;
+  return `<input type="${t}" value="${esc(val)}" ${f.list?'list="teachers"':""} ${attrs}>`;
+}
+function blockHTML(b,v){
+  switch(b.type){
+    case "fields": return `<div class="fields ${b.cols===2?"c2":""}">${b.fields.map(f=>`<label class="f">${esc(f.label)}${inputHTML(f,v[f.key]||"",`data-key="${f.key}"`)}</label>`).join("")}</div>`;
+    case "textarea": { const lab=b.label===undefined?NOTES:b.label; return `<label class="f ta">${esc(lab)}<textarea rows="4" data-key="${b.key}" aria-label="${esc(lab||"Notes")}">${esc(v[b.key]||"")}</textarea></label>`; }
+    case "note": return `<p class="note">${esc(b.text)}</p>`;
+    case "checks": { const sel=v[b.key]||[];
+      return `${b.showLabel?`<div class="clab">${esc(b.label)}</div>`:""}<div class="checks" role="group" aria-label="${esc(b.label)}">${b.options.map(o=>`<label class="chk"><input type="checkbox" data-check="${b.key}" value="${esc(o)}" ${sel.includes(o)?"checked":""}>${esc(o)}</label>`).join("")}</div>
+      ${b.other?`<div class="other"><input type="text" placeholder="If other, describe" data-key="${b.other}" value="${esc(v[b.other]||"")}" aria-label="Other role"></div>`:""}`; }
+    case "grid": { const rows=v[b.key]||[];
+      return `<div class="gridwrap"><table class="g"><thead><tr>${b.rowLabels?`<th>${esc(b.labelHead)}</th>`:""}${b.columns.map(c=>`<th ${c.w?`style="width:${c.w}px"`:""}>${esc(c.label)}</th>`).join("")}${b.dynamic?"<th></th>":""}</tr></thead><tbody>
+      ${rows.map((r,i)=>`<tr>${b.rowLabels?`<td class="lab">${esc(b.rowLabels[i])}</td>`:""}${b.columns.map(c=>`<td>${inputHTML(c,r[c.key]||"",`data-grid="${b.key}" data-row="${i}" data-col="${c.key}" aria-label="${esc(c.label)} row ${i+1}"`)}</td>`).join("")}${b.dynamic?`<td class="x"><button class="xbtn" data-delrow="${b.key}:${i}" aria-label="Remove row ${i+1}">×</button></td>`:""}</tr>`).join("")}
+      </tbody></table></div>${b.dynamic?`<button class="btn small addrow" data-addrow="${b.key}">Add row</button>`:""}`; }
+    case "ratings": { const r=v.ratings||{}, ev=v.evidence||{};
+      return `<div class="rates">${SDI.map(i=>`<div class="rate r${r[i.n]||""}"><div class="rh"><span class="num">${i.n}</span><div><div class="it"><b>${esc(i.code)}:</b> ${esc(i.title)}</div><div class="lk">${esc(i.look)}</div></div>
+      <select data-map="ratings" data-mk="${i.n}" aria-label="Rating for indicator ${i.n}"><option value="">Rate</option>${SCALE.map(([k,l])=>`<option value="${k}" ${r[i.n]===k?"selected":""}>${esc(l)}</option>`).join("")}</select></div>
+      <textarea rows="1" placeholder="Evidence observed (optional)" data-map="evidence" data-mk="${i.n}" aria-label="Evidence for indicator ${i.n}">${esc(ev[i.n]||"")}</textarea></div>`).join("")}</div>`; }
+    case "coteach": { const c=v.coteach||{};
+      return `<div class="gridwrap"><table class="g ct"><thead><tr><th>Model</th><th>Description</th><th style="width:120px">Rating</th></tr></thead><tbody>${COTEACH.map(([k,n,d])=>`<tr><td class="lab">${k}. ${esc(n)}</td><td style="font-size:14px;padding:10px">${esc(d)}</td><td><select data-map="coteach" data-mk="${k}" aria-label="Rating for ${esc(n)}"><option value=""></option>${["1","2","3","4"].map(x=>`<option ${c[k]===x?"selected":""}>${x}</option>`).join("")}</select></td></tr>`).join("")}</tbody></table></div>`; }
+    case "growth": return `<div id="growth">${growthHTML(v)}</div>`;
+    case "walkLooks": { const seen=v.seen||{}, ev=v.wev||{};
+      return WALK.map(g=>`<section class="section"><h2><span>${esc(g.group)}</span></h2>${g.items.map(i=>`<div class="rate w${seen[i.k]||""}">
+        <div class="it">${esc(i.text)}</div>
+        <div class="tags"><span class="tag">SDI #${i.sn}: ${esc(i.sdi)}</span>${i.big3?`<span class="tag big3">Big 3: ${esc(i.big3)}</span>`:""}</div>
+        <div class="seen" role="radiogroup" aria-label="Seen?"><label class="chk"><input type="radio" name="seen-${i.k}" value="yes" data-map="seen" data-mk="${i.k}" ${seen[i.k]==="yes"?"checked":""}>Yes</label><label class="chk"><input type="radio" name="seen-${i.k}" value="no" data-map="seen" data-mk="${i.k}" ${seen[i.k]==="no"?"checked":""}>Not this visit</label></div>
+        <textarea rows="1" placeholder="What I saw or heard (evidence only, no judgments)" data-map="wev" data-mk="${i.k}" aria-label="Evidence">${esc(ev[i.k]||"")}</textarea>
+        <details class="guide"><summary>What it might look like</summary><dl><dt>The teacher might</dt><dd>${esc(i.g[0])}</dd><dt>Students might</dt><dd>${esc(i.g[1])}</dd><dt>Artifacts you might see</dt><dd>${esc(i.g[2])}</dd></dl></details></div>`).join("")}</section>`).join(""); }
+    case "scan": { const sc=(a,b,l)=>`<div class="scan"><div class="clab">${l}</div><input type="number" min="0" inputmode="numeric" data-key="${a}" value="${esc(v[a]||"")}" aria-label="${l} engaged"> engaged of <input type="number" min="0" inputmode="numeric" data-key="${b}" value="${esc(v[b]||"")}" aria-label="${l} total"> students <b class="pct" data-pct="${a}">${pct(v[a],v[b])!==null?pct(v[a],v[b])+"%":""}</b></div>`;
+      return `<div class="scans">${sc("s1e","s1n","Scan 1 (first few minutes)")}${sc("s2e","s2n","Scan 2 (near the end of the visit)")}</div>`; }
+    case "walkTools": return `<div class="aibar"><button class="btn" data-act="walkPre">Start a preconference from this walk</button></div>`;
+    case "summary": return `<div class="aibar"><button class="btn" data-act="toPre">Start a preconference from this observation</button></div>
+      <label class="f ta"><span class="sr" style="position:absolute;left:-9999px">Coaching summary</span><textarea id="summaryBox" rows="6" data-key="summary" placeholder="Strengths, areas for growth, recommended strategies, and next steps">${esc(v.summary||"")}</textarea></label>`;
+    case "section": return `<section class="section"><h2>${b.n?`<span class="n">${b.n}</span>`:""}<span>${esc(b.title)}${b.sub?` <span class="s">${esc(b.sub)}</span>`:""}</span></h2>
+      ${b.prompts?`<ul class="prompts">${b.prompts.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>`:""}${b.blocks.map(x=>blockHTML(x,v)).join("")}</section>`;
+  }
+  return "";
+}
+function growthHTML(v){
+  const r=v.ratings||{}, st=v.strategies||{}, nx=v.nextSteps||{};
+  if(!Object.values(r).some(Boolean)) return `<p class="empty">Rate the indicators above. Anything rated 1 or 2 appears here with strategies from the SDI Coaching Tool, so you can pick what to recommend.</p>`;
+  const g=growthList(v), s=strengthList(v); let h="";
+  if(s.length) h+=`<div class="glows"><b>Strengths (rated 3 or 4)</b><ul>${s.map(i=>`<li>#${i.n} ${esc(i.short)}: ${esc(SCALE_LABEL[r[i.n]])}</li>`).join("")}</ul></div>`;
+  if(!g.length) h+=`<p class="empty">No indicators are rated 1 or 2, so there are no growth areas to plan for yet.</p>`;
+  h+=g.map(i=>{const sel=st[i.n]||[];return `<div class="gcard"><div class="gh"><span class="pill p${r[i.n]}">Rated ${r[i.n]}</span><b>#${i.n} ${esc(i.short)}</b></div><div class="gb">
+    <h4>Teacher strategies to recommend (from the SDI Coaching Tool)</h4>
+    ${Object.entries(i.teacher).map(([cat,bs])=>`<div style="margin-top:8px"><div style="font-weight:700;font-size:13.5px">${esc(cat)}</div>${bs.map(b=>`<label class="strat"><input type="checkbox" data-mapcheck="strategies" data-mk="${i.n}" value="${esc(b)}" ${sel.includes(b)?"checked":""}><span>${esc(b)}</span></label>`).join("")}</div>`).join("")}
+    <details><summary>Student behaviors to look for</summary><ul>${i.students.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>
+    <details><summary>Artifacts to collect as evidence</summary><ul>${i.artifacts.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>
+    <label class="f ta">Coaching next step<textarea rows="2" data-map="nextSteps" data-mk="${i.n}">${esc(nx[i.n]||"")}</textarea></label></div></div>`}).join("");
+  return h;
+}
+function grow(t){t.style.height="auto";t.style.height=(t.scrollHeight+2)+"px"}
+
+function renderForm(){
+  const f=FORM[cur.form], v=cur.values;
+  $("#main").innerHTML=`<div class="topline"><span class="status" id="status">${records.some(r=>r.id===cur.id)?"All changes saved":"New form. It saves as you type."}</span></div>
+  <article class="sheet"><h1>${esc(f.title)}</h1>${f.subtitle?`<p class="sub">${esc(f.subtitle)}</p>`:""}
+  ${f.blocks.map(b=>blockHTML(b,v)).join("")}
+  ${f.attribution?`<p class="note">${esc(f.attribution)}</p>`:""}</article>
+  <datalist id="teachers">${teacherList().map(t=>`<option value="${esc(t)}">`).join("")}</datalist>`;
+  $("#main").querySelectorAll("textarea").forEach(grow);
+  $("#bar").innerHTML=`<div class="inner"><button class="btn primary" data-act="pdf">Download PDF</button><span class="spacer"></span><button class="btn" data-act="new">New blank ${esc(f.short)}</button></div>`;
+  $("#bar").style.display="";
+}
+function renderSaved(){
+  const q=filter.q.trim().toLowerCase();
+  const list=filtered();
+  $("#main").innerHTML=`<div class="sheet saved"><h1>Saved forms</h1>
+  <p class="note">Forms are saved in this browser on this device only. Nothing is sent to a server. Back up regularly, and download PDFs as your official record.</p>
+  <div class="filters"><label class="f" style="flex:1;min-width:220px;max-width:320px">Your name (fills in Coach, Observer, and Visitor)<input type="text" id="myname" value="${esc(myName())}" placeholder="First and last name"></label></div>
+  <div class="bulk" style="background:var(--panel)"><span class="lead"><b>Backup</b>: save all your forms to one file, or restore them on another computer.</span>
+  <button class="btn small" data-act="backup">Back up all forms</button><label class="btn small" style="cursor:pointer">Restore from backup<input type="file" id="restore" accept=".json,application/json" style="display:none"></label></div>
+  <div class="filters"><input type="text" id="q" placeholder="Search by teacher or text" value="${esc(filter.q)}" aria-label="Search">
+  <select id="ff" aria-label="Filter by form"><option value="">All forms</option>${FORMS.map(f=>`<option value="${f.id}" ${filter.form===f.id?"selected":""}>${esc(f.short)}</option>`).join("")}</select>
+  <label class="d">From <input type="date" id="fd" value="${esc(filter.from)}"></label><label class="d">To <input type="date" id="td" value="${esc(filter.to)}"></label></div>
+  ${trendsHTML(walkTrends(list))}
+  ${list.length?`<div class="bulk"><span class="lead">Download <b>${list.length} form${list.length>1?"s":""}</b> shown below${filter.q||filter.form||filter.from||filter.to?" (filtered)":""}</span>
+  <button class="btn small primary" data-bulk="pdf">As one PDF</button><button class="btn small" data-bulk="zip">As a zip of PDFs</button></div>`:""}
+  ${list.length?list.map(r=>`<div class="rec"><div><div class="t"><span class="tag">${esc(FORM[r.form].short)}</span>${esc(recTitle(r).replace(/^[^:]+:\s*/,""))}</div>
+    <div class="m">${recDate(r)?esc(recDate(r))+" · ":""}Last edited ${fmtStamp(r.updatedAt)}</div></div>
+    <div class="acts"><button class="btn small" data-open="${r.id}">Open</button><button class="btn small" data-pdf="${r.id}">PDF</button>
+    <button class="btn small danger" data-del="${r.id}">${confirmDel===r.id?"Confirm delete":"Delete"}</button></div></div>`).join("")
+    :`<p class="empty">${records.length?"No forms match that search.":"No saved forms yet. Pick a form on the left to start one."}</p>`}</div>`;
+  $("#bar").style.display="none";
+}
+function filtered(){const q=filter.q.trim().toLowerCase();
+  return records.filter(r=>{const d=recISO(r);return (!filter.form||r.form===filter.form)&&(!q||recTitle(r).toLowerCase().includes(q)||JSON.stringify(r.values).toLowerCase().includes(q))&&(!filter.from||d>=filter.from)&&(!filter.to||d<=filter.to)})}
+function render(){renderRail(); if(view==="saved") renderSaved(); else renderForm();}
+function onRecords(){
+  renderRail();
+  if(view==="saved") { const a=document.activeElement?.id; renderSaved(); if(a==="q"){const i=$("#q");i.focus();i.setSelectionRange(i.value.length,i.value.length)} }
+  else { const dl=$("#teachers"); if(dl) dl.innerHTML=teacherList().map(t=>`<option value="${esc(t)}">`).join(""); }
+}
+
+/* ---------- SDI helpers ---------- */
+let aiCtl=null, aiConfirm=false;
+function aiPrompt(v){
+  const r=v.ratings||{}, ev=v.evidence||{}, st=v.strategies||{}, nx=v.nextSteps||{}, co=v.coteach||{};
+  const ratings=SDI.map(i=>`#${i.n} ${i.short} (${i.code}): ${r[i.n]?r[i.n]+" - "+SCALE_LABEL[r[i.n]]:"not rated"}${ev[i.n]?" | Evidence: "+ev[i.n]:""}`).join("\n");
+  const growth=growthList(v).map(i=>`#${i.n} ${i.short} (rated ${r[i.n]})\nSDI Coaching Tool teacher behaviors:\n${Object.entries(i.teacher).map(([c,b])=>"- "+c+": "+b.join(" ")).join("\n")}\nStrategies the coach selected: ${(st[i.n]||[]).join(" ")||"none yet"}\nCoach's planned next step: ${nx[i.n]||"none yet"}`).join("\n\n")||"None (no indicators rated 1 or 2).";
+  const cot=COTEACH.filter(c=>co[c[0]]).map(c=>`${c[1]}: ${co[c[0]]}`).join("; ")||"No co-teacher present.";
+  return `You are helping an instructional coach write a coaching summary after a classroom observation using the Georgia DOE SDI Classroom Observation Form. Scale: 0 not observed, 1 not evident, 2 somewhat evident, 3 evident, 4 very evident.
+
+Teacher: ${v.teacher||"(not given)"}
+Grade and subject: ${v.gradeSubject||"(not given)"}
+Observation date: ${fmtDate(v.date)||"(not given)"}
+
+Ratings:
+${ratings}
+
+Co-teaching: ${cot}
+Observer notes: ${v.notes||"none"}
+
+Growth areas with SDI Coaching Tool guidance:
+${growth}
+
+Write a coaching summary the coach can share with the teacher. Use a partnership coaching tone in the spirit of Jim Knight's Impact Cycle: specific, evidence-based, non-evaluative, and encouraging. Plain text only, no markdown symbols such as # or *. Put each of these headings on its own line, each followed by short bullets that start with "- ":
+Strengths observed
+Areas for growth
+Recommended strategies
+Suggested student-impact goal
+Next steps
+Evidence to collect at the next visit
+
+For recommended strategies, draw from the SDI Coaching Tool teacher behaviors listed above and favor the ones the coach selected. The student-impact goal should be one measurable goal. Use only the information above; do not invent classroom details, and do not comment on indicators that were not rated. Keep it under 350 words.`;
+}
+async function draftSummary(){
+  if(aiCtl){aiCtl.abort();return}
+  const rec=cur, v=rec.values, box=$("#summaryBox"), btn=$("#aiBtn");
+  if(!Object.values(v.ratings||{}).some(Boolean)){toast("Rate at least one indicator first.");return}
+  if(box.value.trim()&&!aiConfirm){aiConfirm=true;btn.textContent="Replace my summary?";setTimeout(()=>{aiConfirm=false;if(!aiCtl&&$("#aiBtn"))$("#aiBtn").textContent="Draft summary with Claude"},5000);return}
+  aiConfirm=false;
+  const sample=await sampleP; if(!sample){toast("Drafting with Claude isn't available in this view.");return}
+  const prev=box.value; aiCtl=new AbortController(); btn.textContent="Stop"; box.value="Thinking…"; grow(box);
+  let out=prev;
+  try{ const res=await sample(aiPrompt(v),{signal:aiCtl.signal,onText:({text})=>{box.value=text;grow(box)}}); out=res.text; }
+  catch(e){ out=(e&&e.text)||prev; if(!e||e.code!=="cancelled") toast(e&&e.code==="not_granted"?"Claude drafting wasn't allowed. You can still write the summary yourself.":e&&e.code==="rate_limited"?"Too many requests right now. Try again in a minute.":"Couldn't draft the summary. Try again."); }
+  finally{ aiCtl=null; rec.values.summary=out; if(cur===rec){const b=$("#summaryBox");if(b){b.value=out;grow(b)} const bb=$("#aiBtn");if(bb)bb.textContent="Draft summary with Claude"; scheduleSave();} }
+}
+async function toPreconference(){
+  await flush(); const v=cur.values, r=v.ratings||{}, g=growthList(v), s=strengthList(v);
+  newRecord("pre"); const p=cur.values;
+  p.teacher=v.teacher||""; p.classContent=v.gradeSubject||"";
+  const d=new Date(); p.date=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  p.s1=[`SDI observation${v.date?" on "+fmtDate(v.date):""}.`,
+    ...g.map(i=>`- #${i.n} ${i.short}: rated ${r[i.n]} (${SCALE_LABEL[r[i.n]]})${v.evidence?.[i.n]?". Evidence: "+v.evidence[i.n]:""}`),
+    s.length?`Strengths to preserve: ${s.map(i=>i.short).join(", ")}.`:""].filter(Boolean).join("\n");
+  const strat=g.flatMap(i=>(v.strategies?.[i.n]||[]).map(x=>`- ${x}`));
+  if(strat.length) p.s3="Strategies from the SDI Coaching Tool:\n"+strat.join("\n");
+  if(g.length) p.obsFocus=g.map(i=>i.short).join(", ");
+  dirty=true; view="form"; render(); window.scrollTo(0,0); flush(); toast("Preconference started from the observation");
+}
+
+async function walkToPreconference(){
+  await flush(); const v=cur.values, seen=v.seen||{};
+  newRecord("pre"); const p=cur.values;
+  p.teacher=v.teacher||""; p.classContent=v.course||"";
+  const d=new Date(); p.date=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const seenList=WALK_ITEMS.filter(i=>seen[i.k]==="yes").map(i=>i.sdi);
+  p.s1=[`Eagle Eyes Learning Walk${v.date?" on "+fmtDate(v.date):""}.`, v.glow?"Glow: "+v.glow:"", v.wonder?"Wonder: "+v.wonder:"",
+    seenList.length?"Seen during the visit: "+seenList.join(", ")+".":"",
+    (v.followUp||[]).length?"Teacher requested: "+v.followUp.join(", ")+".":""].filter(Boolean).join("\n");
+  if(v.next) p.nextStep=v.next;
+  dirty=true; view="form"; render(); window.scrollTo(0,0); flush(); toast("Preconference started from the walk");
+}
+function walkTrends(list){
+  const walks=list.filter(r=>r.form==="walk"); if(!walks.length) return null;
+  const items=WALK_ITEMS.map(i=>{let y=0,n=0;walks.forEach(w=>{const s=(w.values.seen||{})[i.k];if(s==="yes")y++;if(s)n++});return {i,y,n,p:n?Math.round(100*y/n):null}});
+  const big=["Teacher Clarity","Classroom Discussion"].map(b=>{let y=0,n=0;items.filter(x=>x.i.big3===b).forEach(x=>{y+=x.y;n+=x.n});return {b,p:n?Math.round(100*y/n):null}});
+  const eng=[];walks.forEach(w=>["s1","s2"].forEach(k=>{const q=pct(w.values[k+"e"],w.values[k+"n"]);if(q!==null)eng.push(q)}));
+  const fu={};walks.forEach(w=>(w.values.followUp||[]).forEach(f=>fu[f]=(fu[f]||0)+1));
+  const ds=walks.map(recISO).sort();
+  return {count:walks.length,items,big,eng:eng.length?Math.round(eng.reduce((a,b)=>a+b,0)/eng.length):null,fu,from:ds[0],to:ds[ds.length-1]};
+}
+function trendsHTML(t){
+  if(!t) return "";
+  return `<div class="trends"><h3>Eagle Eyes school-wide trends</h3><p class="note" style="margin-top:0">${t.count} walk${t.count>1?"s":""}${t.from?`, ${fmtDate(t.from)}${t.to!==t.from?" to "+fmtDate(t.to):""}`:""}. No teacher names, so you can share this with leadership or use it to plan PL.</p>
+  ${t.big.map(b=>`<div class="trow"><b>Big 3: ${esc(b.b)}</b><div class="tbar"><i style="width:${b.p||0}%"></i></div><span>${b.p===null?"-":b.p+"%"}</span></div>`).join("")}
+  <div class="trow"><b>Average engagement</b><div class="tbar"><i style="width:${t.eng||0}%"></i></div><span>${t.eng===null?"-":t.eng+"%"}</span></div>
+  <div class="clab">Look-fors seen (share of walks where marked)</div>
+  ${t.items.map(x=>`<div class="trow"><span>${esc(x.i.sdi)}</span><div class="tbar"><i style="width:${x.p||0}%"></i></div><span>${x.p===null?"-":`${x.p}% (${x.y}/${x.n})`}</span></div>`).join("")}
+  ${Object.keys(t.fu).length?`<p class="note">Follow-up requested: ${Object.entries(t.fu).map(([k,n])=>`${esc(k)} (${n})`).join(", ")}</p>`:""}
+  <div class="aibar"><button class="btn small" data-act="trendsPdf">Download trends PDF</button></div></div>`;
+}
+async function trendsPdf(){
+  const t=walkTrends(filtered()); if(!t) return;
+  if(!window.jspdf){toast("The PDF tool didn't load. Check your connection and reload.");return}
+  const {jsPDF}=window.jspdf; const doc=new jsPDF({unit:"pt",format:"letter"}); const M=40, W=doc.internal.pageSize.getWidth();
+  doc.setFont("helvetica","bold");doc.setFontSize(16);doc.setTextColor(...INK);doc.text("Eagle Eyes Learning Walks: School-wide Trends",M,M+12);
+  doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(...SOFT);
+  doc.text(`T.W. Josey High School. ${t.count} walk${t.count>1?"s":""}${t.from?", "+fmtDate(t.from)+(t.to!==t.from?" to "+fmtDate(t.to):""):""}. Non-evaluative; no teacher names.`,M,M+30);
+  doc.setDrawColor(...GOLD);doc.setLineWidth(2);doc.line(M,M+40,W-M,M+40);
+  const st={theme:"grid",margin:{left:M,right:M},styles:{fontSize:10,cellPadding:6,textColor:INK},headStyles:{fillColor:FILL,textColor:INK,fontStyle:"bold"}};
+  doc.autoTable({...st,startY:M+54,head:[["Summary","Result"]],body:[...t.big.map(b=>["Big 3: "+b.b+" (look-fors seen)",b.p===null?"-":b.p+"%"]),["Average engagement (head counts)",t.eng===null?"-":t.eng+"%"]]});
+  doc.autoTable({...st,startY:doc.lastAutoTable.finalY+14,head:[["Look-for","SDI indicator","Seen","Walks marked"]],body:t.items.map(x=>[x.i.sdi,"#"+x.i.sn+(x.i.big3?" (Big 3: "+x.i.big3+")":""),x.p===null?"-":x.p+"%",String(x.n)])});
+  if(Object.keys(t.fu).length) doc.autoTable({...st,startY:doc.lastAutoTable.finalY+14,head:[["Follow-up requested by teachers","Count"]],body:Object.entries(t.fu).map(([k,n])=>[k,String(n)])});
+  await saveFile(`Eagle Eyes trends - ${t.from||""}${t.to&&t.to!==t.from?" to "+t.to:""}.pdf`.replace(/[\\/:*?"<>|]+/g,"-"),doc.output("blob"),"Trends PDF saved");
+}
+
+async function restoreBackup(file){
+  if(!file) return;
+  try{ const data=JSON.parse(await file.text()); const list=Array.isArray(data)?data:data.records;
+    if(!Array.isArray(list)) throw 0;
+    const o=lsRead(); let n=0;
+    list.forEach(r=>{ if(r&&r.id&&FORM[r.form]&&r.values){ if(!o[r.id]||(o[r.id].updatedAt||0)<(r.updatedAt||0)){o[r.id]=r;n++} } });
+    if(!lsWrite(o)){toast("Browser storage is full. Delete some forms and try again.");return}
+    if(data.name&&!myName()){try{localStorage.setItem(NAMEKEY,data.name)}catch{}}
+    emitLocal(); renderSaved(); toast(`Restored ${n} form${n===1?"":"s"}`);
+  }catch{ toast("That file isn't a Coaching Toolkit backup."); }
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("button"); if(!t) return;
+  if(t.dataset.nav){ await flush(); if(t.dataset.nav==="saved"){view="saved";confirmDel=null}else{view="form";newRecord(t.dataset.nav)} render(); window.scrollTo(0,0); }
+  else if(t.dataset.act==="new"){ await flush(); newRecord(cur.form); render(); window.scrollTo(0,0); toast("Started a new blank form"); }
+  else if(t.dataset.act==="ai"){ draftSummary(); }
+  else if(t.dataset.act==="toPre"){ toPreconference(); }
+  else if(t.dataset.act==="walkPre"){ walkToPreconference(); }
+  else if(t.dataset.act==="trendsPdf"){ trendsPdf(); }
+  else if(t.dataset.act==="backup"){ await flush(); const d=new Date().toISOString().slice(0,10); saveFile(`Coaching Toolkit backup - ${d}.json`,new Blob([JSON.stringify({app:"coaching-toolkit",version:1,exported:Date.now(),name:myName(),records},null,1)],{type:"application/json"}),"Backup saved"); }
+  else if(t.dataset.act==="drive"){ await flush(); drivePdf(cur); }
+  else if(t.dataset.drive){ const r=records.find(x=>x.id===t.dataset.drive); if(r) drivePdf(r); }
+  else if(t.dataset.act==="pdf"){ await flush(); downloadPdf(cur); }
+  else if(t.dataset.open){ const r=records.find(x=>x.id===t.dataset.open); if(r){cur=JSON.parse(JSON.stringify(r));eachGrid(FORM[cur.form].blocks,g=>{if(!Array.isArray(cur.values[g.key]))cur.values[g.key]=Array.from({length:g.rows},()=>({}))});view="form";dirty=false;render();window.scrollTo(0,0)} }
+  else if(t.dataset.pdf){ const r=records.find(x=>x.id===t.dataset.pdf); if(r) downloadPdf(r); }
+  else if(t.dataset.del){ const id=t.dataset.del;
+    if(confirmDel!==id){confirmDel=id;renderSaved();return}
+    confirmDel=null; try{const s=await storeP;await s.remove(id);if(cur&&cur.id===id)newRecord(cur.form);toast("Form deleted")}catch{toast("Couldn't delete that form. Try again.")} renderSaved(); }
+  else if(t.dataset.bulk){ downloadAll(t.dataset.bulk); }
+  else if(t.dataset.addrow){ cur.values[t.dataset.addrow].push({}); renderForm(); scheduleSave(); }
+  else if(t.dataset.delrow){ const [k,i]=t.dataset.delrow.split(":"); cur.values[k].splice(+i,1); if(!cur.values[k].length)cur.values[k].push({}); renderForm(); scheduleSave(); }
+});
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.id==="myname"){try{localStorage.setItem(NAMEKEY,t.value.trim())}catch{}return}
+  if(t.id==="q"){filter.q=t.value;renderSaved();const i=$("#q");i.focus();i.setSelectionRange(i.value.length,i.value.length);return}
+  if(!cur||view!=="form") return;
+  if(t.tagName==="TEXTAREA") grow(t);
+  if(t.dataset.grid){ cur.values[t.dataset.grid][+t.dataset.row][t.dataset.col]=t.value; scheduleSave(); }
+  else if(t.dataset.map){ const m=cur.values[t.dataset.map]=cur.values[t.dataset.map]||{}; m[t.dataset.mk]=t.value;
+    if(t.dataset.map==="seen"){ t.closest(".rate").className="rate w"+t.value; }
+    if(t.dataset.map==="ratings"){ t.closest(".rate").className="rate r"+t.value; const gr=$("#growth"); if(gr){gr.innerHTML=growthHTML(cur.values);gr.querySelectorAll("textarea").forEach(grow)} }
+    scheduleSave(); }
+  else if(t.dataset.mapcheck){ const m=cur.values[t.dataset.mapcheck]=cur.values[t.dataset.mapcheck]||{}; m[t.dataset.mk]=[...document.querySelectorAll(`[data-mapcheck="${t.dataset.mapcheck}"][data-mk="${t.dataset.mk}"]:checked`)].map(x=>x.value); scheduleSave(); }
+  else if(t.dataset.check){ cur.values[t.dataset.check]=[...document.querySelectorAll(`[data-check="${t.dataset.check}"]:checked`)].map(x=>x.value); scheduleSave(); }
+  else if(t.dataset.key){ cur.values[t.dataset.key]=t.value;
+    if(/^s[12][en]$/.test(t.dataset.key)){const k=t.dataset.key.slice(0,2);const el=document.querySelector(`[data-pct="${k}e"]`);const q=pct(cur.values[k+"e"],cur.values[k+"n"]);if(el)el.textContent=q!==null?q+"%":""}
+    scheduleSave(); }
+});
+document.addEventListener("change",e=>{ if(e.target.id==="restore"){restoreBackup(e.target.files[0]);e.target.value="";return} if(e.target.id==="ff"){filter.form=e.target.value;renderSaved()} else if(e.target.id==="fd"){filter.from=e.target.value;renderSaved()} else if(e.target.id==="td"){filter.to=e.target.value;renderSaved()} else if(e.target.tagName==="SELECT"&&e.target.dataset.grid){ cur.values[e.target.dataset.grid][+e.target.dataset.row][e.target.dataset.col]=e.target.value; scheduleSave(); } });
+window.addEventListener("pagehide",()=>flush());
+
+/* ---------- PDF ---------- */
+const INK=[28,43,57], SOFT=[90,105,120], GOLD=[224,162,26], FILL=[238,242,245];
+function fmtTime(t){const m=/^(\d{2}):(\d{2})/.exec(t||"");if(!m)return t||"";let h=+m[1];const ap=h>=12?"PM":"AM";h=h%12||12;return `${h}:${m[2]} ${ap}`}
+function show(f,val){ if(f.input==="date"||f.input==="datetime-local") return fmtDate(val); if(f.input==="time") return fmtTime(val); return val||""; }
+function buildPdf(r,doc){
+  const {jsPDF}=window.jspdf; const f=FORM[r.form], v=r.values||{}, orient=f.landscape?"landscape":"portrait";
+  if(doc) doc.addPage("letter",orient); else doc=new jsPDF({unit:"pt",format:"letter",orientation:orient});
+  const first=doc.getNumberOfPages();
+  const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight(), M=40, CW=W-2*M;
+  let y=M;
+  const ensure=h=>{ if(y+h>H-M-24){doc.addPage();y=M} };
+  const base={theme:"grid",margin:{left:M,right:M,bottom:M+20},styles:{fontSize:9.5,cellPadding:5,textColor:INK,lineColor:[180,190,200],lineWidth:.6,valign:"top",overflow:"linebreak"},headStyles:{fillColor:FILL,textColor:INK,fontStyle:"bold"}};
+  const table=opts=>{doc.autoTable({...base,startY:y,...opts});y=doc.lastAutoTable.finalY+10};
+
+  doc.setFont("helvetica","bold");doc.setFontSize(f.landscape?16:15);doc.setTextColor(...INK);
+  const tl=doc.splitTextToSize(f.title,CW);doc.text(tl,M,y+12);y+=12+tl.length*17-10;
+  if(f.subtitle){doc.setFont("helvetica","italic");doc.setFontSize(9.5);doc.setTextColor(...SOFT);doc.text(f.subtitle,M,y+8);y+=14}
+  doc.setDrawColor(...GOLD);doc.setLineWidth(2);doc.line(M,y+2,W-M,y+2);y+=16;
+
+  const lb=l=>/[?:]$/.test(l)?l:l+":";
+  const draw=b=>{
+    if(b.type==="fields"){
+      const long=b.fields.some(x=>x.input==="textarea");
+      if(b.cols===2&&!long){ const body=[];for(let i=0;i<b.fields.length;i+=2){const a=b.fields[i],c=b.fields[i+1];body.push([lb(a.label),show(a,v[a.key]),c?lb(c.label):"",c?show(c,v[c.key]):""])}
+        table({body,columnStyles:{0:{fontStyle:"bold",fillColor:FILL,cellWidth:CW*.2},1:{cellWidth:CW*.3},2:{fontStyle:"bold",fillColor:FILL,cellWidth:CW*.2},3:{cellWidth:CW*.3}}}); }
+      else table({body:b.fields.map(x=>[lb(x.label),show(x,v[x.key])]),columnStyles:{0:{fontStyle:"bold",fillColor:FILL,cellWidth:CW*.32}},bodyStyles:{minCellHeight:long?34:0}});
+    }
+    else if(b.type==="textarea"){ const lab=b.label===undefined?NOTES:b.label; table({head:lab?[[lab]]:undefined,body:[[v[b.key]||""]],bodyStyles:{minCellHeight:44}}); }
+    else if(b.type==="note"){ doc.setFont("helvetica","italic");doc.setFontSize(9);doc.setTextColor(...SOFT);const l=doc.splitTextToSize(b.text,CW);ensure(l.length*11+6);doc.text(l,M,y+8);y+=l.length*11+8; }
+    else if(b.type==="checks"){ const sel=v[b.key]||[];doc.setFont("helvetica","normal");doc.setFontSize(9.5);doc.setTextColor(...INK);
+      if(b.showLabel){doc.setFont("helvetica","bold");ensure(28);doc.text(lb(b.label),M,y+9);y+=13;doc.setFont("helvetica","normal");}
+      let txt=b.options.map(o=>`[${sel.includes(o)?"X":"  "}] ${o}${o==="Other"&&b.other&&v[b.other]?": "+v[b.other]:""}`).join("     ");
+      const l=doc.splitTextToSize(txt,CW);ensure(l.length*13+6);doc.text(l,M,y+9);y+=l.length*13+8; }
+    else if(b.type==="grid"){ const rows=(v[b.key]||[]).filter((rw,i)=>!b.dynamic||Object.values(rw).some(Boolean)||i<3);
+      const head=[[...(b.rowLabels?[b.labelHead]:[]),...b.columns.map(c=>c.label)]];
+      const body=rows.map((rw,i)=>[...(b.rowLabels?[b.rowLabels[i]]:[]),...b.columns.map(c=>show(c,rw[c.key]))]);
+      const cs={};if(b.rowLabels)cs[0]={cellWidth:38,halign:"center",fontStyle:"bold"};
+      table({head,body,columnStyles:cs,bodyStyles:{minCellHeight:b.rows===1?60:28}}); }
+    else if(b.type==="ratings"){ const r=v.ratings||{},ev=v.evidence||{};
+      table({head:[["#","Structure Indicator","Look Fors","Rating","Evidence / Notes"]],body:SDI.map(i=>[String(i.n),`${i.code}: ${i.title}`,i.look,r[i.n]?`${r[i.n]} - ${SCALE_LABEL[r[i.n]]}`:"",ev[i.n]||""]),
+        columnStyles:{0:{cellWidth:24,halign:"center",fontStyle:"bold"},1:{cellWidth:CW*.27,fontStyle:"bold"},2:{cellWidth:CW*.3,fontSize:8.5,textColor:SOFT},3:{cellWidth:78}}}); }
+    else if(b.type==="coteach"){ const c=v.coteach||{};
+      if(!Object.values(c).some(Boolean)) draw({type:"note",text:"No co-teacher present."});
+      else table({head:[["Model","Description","Rating"]],body:COTEACH.map(([k,n,d])=>[`${k}. ${n}`,d,c[k]||""]),columnStyles:{0:{cellWidth:130,fontStyle:"bold"},2:{cellWidth:60,halign:"center"}}}); }
+    else if(b.type==="growth"){ const g=growthList(v),s=strengthList(v),st=v.strategies||{},nx=v.nextSteps||{},r=v.ratings||{};
+      if(s.length) table({head:[["Strengths (rated 3 or 4)"]],body:[[s.map(i=>`#${i.n} ${i.short}: ${SCALE_LABEL[r[i.n]]}`).join("\n")]]});
+      if(!g.length) draw({type:"note",text:"No indicators rated 1 or 2."});
+      g.forEach(i=>{ensure(90);table({head:[[`#${i.n} ${i.short}: rated ${r[i.n]} (${SCALE_LABEL[r[i.n]]})`]],rowPageBreak:"avoid",body:[["Recommended strategies:\n"+((st[i.n]||[]).map(x=>"- "+x).join("\n")||"None selected")+"\n\nCoaching next step: "+(nx[i.n]||"")]]})}); }
+    else if(b.type==="walkLooks"){ const seen=v.seen||{},ev=v.wev||{}; const body=[];
+      WALK.forEach(g=>{body.push([{content:g.group,colSpan:3,styles:{fillColor:FILL,fontStyle:"bold"}}]);
+        g.items.forEach(i=>body.push([`${i.text}\nSDI #${i.sn}: ${i.sdi}${i.big3?"  |  Big 3: "+i.big3:""}`,seen[i.k]==="yes"?"Yes":seen[i.k]==="no"?"Not this visit":"",ev[i.k]||""]))});
+      table({head:[["Look-For","Seen?","What I saw or heard"]],body,columnStyles:{0:{cellWidth:CW*.42},1:{cellWidth:70}}}); }
+    else if(b.type==="scan"){ const f=(a,n)=>v[a]||v[n]?`${v[a]||"__"} engaged of ${v[n]||"__"} students${pct(v[a],v[n])!==null?" ("+pct(v[a],v[n])+"%)":""}`:"";
+      table({body:[["Scan 1 (first few minutes)",f("s1e","s1n")],["Scan 2 (near the end of the visit)",f("s2e","s2n")]],columnStyles:{0:{fontStyle:"bold",fillColor:FILL,cellWidth:CW*.35}}}); }
+    else if(b.type==="walkTools"){}
+    else if(b.type==="summary"){ table({body:[[v.summary||""]],bodyStyles:{minCellHeight:60}}); }
+    else if(b.type==="section"){ ensure(70);
+      doc.setFont("helvetica","bold");doc.setFontSize(11.5);doc.setTextColor(...INK);
+      const h=(b.n?b.n+". ":"")+b.title.toUpperCase()+(b.sub?" - "+b.sub:"");doc.text(h,M,y+10);y+=16;
+      doc.setDrawColor(...GOLD);doc.setLineWidth(1);doc.line(M,y-2,M+60,y-2);y+=4;
+      if(b.prompts){doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(...SOFT);
+        b.prompts.forEach(p=>{const l=doc.splitTextToSize("•  "+p,CW-10);ensure(l.length*11);doc.text(l,M+4,y+8);y+=l.length*11});y+=6;}
+      b.blocks.forEach(draw); }
+  };
+  f.blocks.forEach(draw);
+  if(f.attribution){doc.setFont("helvetica","italic");doc.setFontSize(8.5);doc.setTextColor(...SOFT);ensure(14);doc.text(f.attribution,M,y+8)}
+  const last=doc.getNumberOfPages(), n=last-first+1, who=r.form==="log"?(v.period||""):(v.teacher||"");
+  for(let i=first;i<=last;i++){doc.setPage(i);doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(...SOFT);
+    doc.text(f.title+(who?"  |  "+who:""),M,H-22);doc.text(`Page ${i-first+1} of ${n}`,W-M,H-22,{align:"right"});}
+  doc.setPage(last);
+  return doc;
+}
+function pdfName(r){const f=FORM[r.form],v=r.values||{};const who=r.form==="log"?(v.period||"log"):(v.teacher||"teacher");
+  const d=(f.dateKey&&v[f.dateKey]||"").slice(0,10)||new Date(r.updatedAt).toISOString().slice(0,10);
+  return `${f.short} - ${who} - ${d}.pdf`.replace(/[\\/:*?"<>|]+/g,"-");}
+async function drivePdf(r){
+  if(!window.jspdf){toast("The PDF tool didn't load. Check your connection and reload.");return}
+  let blob; try{blob=buildPdf(r).output("blob")}catch(e){toast("Couldn't build the PDF.");return}
+  await saveToDrive(pdfName(r),blob);
+}
+async function downloadPdf(r){
+  if(!window.jspdf){toast("The PDF tool didn't load. Check your connection and reload.");return}
+  let blob; try{blob=buildPdf(r).output("blob")}catch(e){toast("Couldn't build the PDF.");return}
+  await saveFile(pdfName(r),blob,"PDF saved");
+}
+
+/* ---------- Google Drive ---------- */
+const DRIVE="Google Drive"; let driveBusy=false;
+function blobToB64(blob){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=()=>rej(r.error);r.readAsDataURL(blob)})}
+function driveErr(e){const c=e&&e.code;
+  if(c==="needs_reauth") return "Google Drive needs to be reconnected. Reconnect it in claude.ai Settings, Connectors, then try again.";
+  if(c==="server_not_connected"||c==="server_not_found") return "Google Drive isn't connected. Add it in claude.ai Settings, Connectors, then try again.";
+  if(c==="selection_required") return "Choose which Google Drive account to use when Claude asks, then try again.";
+  if(c==="not_in_manifest"||c==="not_granted") return "Google Drive access is turned off for this page. Allow it when prompted to save files.";
+  if(c==="blocked_by_policy"||c==="approval_required") return "Your organization's settings don't allow saving to Google Drive from here.";
+  if(c==="tool_error") return "Google Drive couldn't save the file: "+(e.message||"unknown error");
+  if(c==="cancelled") return "";
+  return "Google Drive didn't confirm the save. Check your Coaching Toolkit folder before trying again so you don't create a duplicate.";
+}
+function driveBanner(html){let b=$("#driveMsg");if(!b){b=document.createElement("div");b.id="driveMsg";b.className="drivemsg";document.body.appendChild(b)}
+  b.innerHTML=html+`<button class="xbtn" aria-label="Dismiss" onclick="this.parentNode.remove()">×</button>`;clearTimeout(driveBanner._t);driveBanner._t=setTimeout(()=>b.remove(),12000)}
+async function saveToDrive(filename,blob){
+  if(driveBusy){toast("Still saving the last file…");return}
+  const mcp=await mcpP; if(!mcp){toast("Saving to Google Drive isn't available in this view.");return}
+  driveBusy=true; toast("Saving to Google Drive…");
+  try{
+    const st=await storeP; const cfg=await st.getSettings();
+    let folderId=cfg.driveFolderId, folderUrl=cfg.driveFolderUrl;
+    if(!folderId){
+      const f=(await mcp.callTool(DRIVE,"create_file",{title:"Coaching Toolkit",contentMimeType:"application/vnd.google-apps.folder"})).payload||{};
+      if(!f.id) throw {code:"tool_error",message:"the folder couldn't be created"};
+      folderId=f.id; folderUrl=f.viewUrl||""; await st.setSettings({...cfg,driveFolderId:folderId,driveFolderUrl:folderUrl});
+    }
+    const b64=await blobToB64(blob);
+    let file;
+    try{ file=(await mcp.callTool(DRIVE,"create_file",{title:filename,base64Content:b64,contentMimeType:"application/pdf",disableConversionToGoogleType:true,parentId:folderId})).payload||{}; }
+    catch(e){ if(e&&e.code==="tool_error"&&/not ?found|parent|404/i.test(e.message||"")){ await st.setSettings({...cfg,driveFolderId:"",driveFolderUrl:""}); throw {code:"tool_error",message:"the Coaching Toolkit folder wasn't found (it may have been moved or deleted). Click Save to Drive again to create a new one."}; } throw e; }
+    const link=file.viewUrl||folderUrl;
+    driveBanner(`Saved <b>${esc(filename)}</b> to your Coaching Toolkit folder in Google Drive.${link?` <a href="${esc(link)}" target="_blank" rel="noopener">Open in Drive</a>`:""}`);
+  }catch(e){ const m=driveErr(e); if(m) driveBanner(esc(m)); }
+  finally{ driveBusy=false; }
+}
+
+async function saveFile(filename,blob,okMsg){
+  const dl=await downloadsP;
+  if(!dl){ try{const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast(okMsg)}catch{toast("Couldn't save the file.")} return; }
+  try{await dl.save({filename,data:blob});toast(okMsg)}
+  catch(e){ if(e&&e.code==="declined")return; toast(e&&e.code==="rate_limited"?"A save prompt is already open.":"Couldn't save the file. Try again."); }
+}
+function bundleName(list,ext){
+  const teachers=[...new Set(list.map(r=>r.values?.teacher).filter(Boolean))];
+  const who=teachers.length===1?teachers[0]:"All teachers";
+  const ds=list.map(recISO).sort(); const range=ds[0]===ds[ds.length-1]?ds[0]:`${ds[0]} to ${ds[ds.length-1]}`;
+  return `Coaching forms - ${who} - ${range}.${ext}`.replace(/[\\/:*?"<>|]+/g,"-");
+}
+async function downloadAll(kind){
+  const list=filtered().slice().sort((a,b)=>recISO(a).localeCompare(recISO(b))||a.form.localeCompare(b.form));
+  if(!list.length) return;
+  if(!window.jspdf||(kind==="zip"&&!window.JSZip)){toast("The download tools didn't load. Check your connection and reload.");return}
+  if(kind!=="drive") toast(`Building ${list.length} form${list.length>1?"s":""}…`);
+  try{
+    if(kind==="pdf"||kind==="drive"){ let doc=null; for(const r of list) doc=buildPdf(r,doc);
+      if(kind==="drive") await saveToDrive(bundleName(list,"pdf"),doc.output("blob"));
+      else await saveFile(bundleName(list,"pdf"),doc.output("blob"),"PDF saved"); }
+    else { const zip=new JSZip(), used={};
+      for(const r of list){ let n=pdfName(r); if(used[n]){used[n]++;n=n.replace(/\.pdf$/,` (${used[n]}).pdf`)} else used[n]=1; zip.file(n,buildPdf(r).output("arraybuffer")); }
+      await saveFile(bundleName(list,"zip"),await zip.generateAsync({type:"blob"}),"Zip saved"); }
+  }catch(e){toast("Couldn't build the download. Try fewer forms at a time.")}
+}
+
+/* ---------- start ---------- */
+newRecord("pre"); render();
+</script>
+</body>
+</html>
